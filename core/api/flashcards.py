@@ -1,7 +1,8 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import generics
-from core.models import Flashcard, FlashcardWord
+from rest_framework import generics, permissions
+from django.db.models import Prefetch
+from core.models import Flashcard, FlashcardWord, WordMeaning
 from core.serializers.flashcard import FlashcardSerializer
 
 @api_view(["POST"])
@@ -23,5 +24,19 @@ def add_to_flashcard(request, flashcard_id):
     return Response({"ok": True})
 
 class FlashcardDetail(generics.RetrieveAPIView):
-    queryset = Flashcard.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
     serializer_class = FlashcardSerializer
+    def get_queryset(self):
+        return (Flashcard.objects
+                .filter(user=self.request.user)
+                .prefetch_related(
+                    Prefetch(
+                        "items",
+                        queryset=FlashcardWord.objects
+                            .select_related("word")
+                            .prefetch_related(
+                                Prefetch("word__meanings",
+                                        queryset=WordMeaning.objects.all())
+                            )
+                    )
+                ))

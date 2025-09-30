@@ -1,17 +1,15 @@
 from rest_framework import serializers
 from core.models import Flashcard, FlashcardWord
-from .word import WordSerializer
+from core.serializers.word import WordLiteSerializer
 
 class FlashcardWordSerializer(serializers.ModelSerializer):
-    word = WordSerializer(read_only=True)
-
+    word = WordLiteSerializer(read_only=True)
     class Meta:
         model = FlashcardWord
-        fields = ["id", "word"]
+        fields = ["id","word"]
 
 class FlashcardSerializer(serializers.ModelSerializer):
     items = FlashcardWordSerializer(many=True, read_only=True)
-
     class Meta:
         model = Flashcard
-        fields = ["id", "name", "created_at", "items"]
+        fields = ["id","name","created_at","items"]
