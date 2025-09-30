@@ -2,6 +2,7 @@ from django.urls import path
 from .search import SearchView, autocomplete, ReverseLookupView
 from .history import push_history, history
 from .favorites import toggle_favorite, FavoritesView
+from .favorites import is_favorited
 from .flashcards import create_flashcard, add_to_flashcard, FlashcardDetail
 from .auth import RegisterView, me
 from .kanji import kanji_detail
@@ -18,6 +19,7 @@ urlpatterns = [
 
     path("favorites/toggle/", toggle_favorite), # toggle favourite word
     path("favorites/", FavoritesView.as_view()), # get favorite words of user
+    path("favorites/<int:word_id>/is_favorited/", is_favorited), # check if a word is favorited
 
     path("flashcards/", create_flashcard),
     path("flashcards/<int:flashcard_id>/add/", add_to_flashcard),
