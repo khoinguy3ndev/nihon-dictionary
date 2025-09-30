@@ -1,8 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import generics, permissions
-from django.db.models import Prefetch
-from core.models import Favorite, WordMeaning
+from rest_framework import generics
+from core.models import Favorite
 from core.serializers.favorite import FavoriteSerializer
 
 @api_view(["POST"])
@@ -19,12 +18,5 @@ def toggle_favorite(request):
 
 class FavoritesView(generics.ListAPIView):
     serializer_class = FavoriteSerializer
-    permission_classes = [permissions.IsAuthenticated]
     def get_queryset(self):
-        return (Favorite.objects
-                .filter(user=self.request.user)
-                .select_related("word")
-                .prefetch_related(
-                    Prefetch("word__meanings",
-                            queryset=WordMeaning.objects.all())
-                ))
+        return Favorite.objects.filter(user=self.request.user)

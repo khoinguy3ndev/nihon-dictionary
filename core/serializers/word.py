@@ -17,14 +17,3 @@ class WordSerializer(serializers.ModelSerializer):
     class Meta:
         model = Word
         fields = ["id","kanji","kana","parts_of_speech","jlpt_level","is_cached","meanings"]
-
-class WordMeaningLiteSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = WordMeaning
-        fields = ["id", "meaning"]
-
-class WordLiteSerializer(serializers.ModelSerializer):
-    meanings = WordMeaningLiteSerializer(many=True, read_only=True)
-    class Meta:
-        model = Word
-        fields = ["id","kanji","kana","parts_of_speech","jlpt_level","is_cached","meanings"]
