@@ -20,3 +20,10 @@ class FavoritesView(generics.ListAPIView):
     serializer_class = FavoriteSerializer
     def get_queryset(self):
         return Favorite.objects.filter(user=self.request.user)
+
+@api_view(["GET"])
+def is_favorited(request, word_id):
+    if not request.user.is_authenticated:
+        return Response({"favorited": False})
+    exists = Favorite.objects.filter(user=request.user, word_id=word_id).exists()
+    return Response({"favorited": exists})
