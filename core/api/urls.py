@@ -16,8 +16,8 @@ urlpatterns = [
     path("history/push/", push_history),
     path("history/", history),
 
-    path("favorites/toggle/", toggle_favorite),
-    path("favorites/", FavoritesView.as_view()),
+    path("favorites/toggle/", toggle_favorite), # toggle favourite word
+    path("favorites/", FavoritesView.as_view()), # get favorite words of user
 
     path("flashcards/", create_flashcard),
     path("flashcards/<int:flashcard_id>/add/", add_to_flashcard),
