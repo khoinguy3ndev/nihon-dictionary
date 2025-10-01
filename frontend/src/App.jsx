@@ -6,7 +6,7 @@ import RegisterPage from "./pages/RegisterPage/RegisterPage";
 import TranslatePage from "./pages/TranslatePage/TranslatePage";
 import IntroducePage from "./pages/IntroducePage/Introducepage";
 import JLPTPage from "./pages/JLPTPage/JLPTPage";
-import FlashcardsPage from "./pages/FlashCard/FlashcardsPage";
+import FlashcardsPage from "./pages/FlashcardPage/FlashcardPage";
 
 function App() {
   return (

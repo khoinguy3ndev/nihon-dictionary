@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./JLPT.css";
+import { Link } from "react-router-dom";
 
 function JLPT() {
   const [level, setLevel] = useState("N5");
@@ -64,7 +65,9 @@ function JLPT() {
       {/* Main content JLPT */}
       <div className="jlpt-main">
         <div className="jlpt-top-buttons">
-          <button>FlashCard</button>
+          <Link to="/flashcards">
+            <button>FlashCard</button>
+          </Link>
           <button>Quizz</button>
           <button>Luyện nói, viết</button>
           <button>Mini Test</button>

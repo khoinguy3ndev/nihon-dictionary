@@ -9,101 +9,154 @@ import {
   FaComments,
   FaInfoCircle,
   FaCog,
+  FaUser,
 } from "react-icons/fa";
 import "./Sidebar.css";
 
 function Sidebar() {
   return (
     <div className="sidebar">
-      <div className="logo">
-        <span className="logo-icon">こ</span>
-        <span className="logo-text">koihi</span>
+      <div className="sidebar-header">
+        <div className="logo">
+          <div className="logo-icon">こ</div>
+          <span className="logo-text">koihi</span>
+        </div>
       </div>
 
-      <ul className="menu">
-        <li>
-          <NavLink
-            to="/search"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaSearch /> Tra cứu
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/translate"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaBook /> Dịch
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/jlpt"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaClipboardList /> JLPT
-          </NavLink>
-        </li>
-        <hr />
-        <li>
-          <NavLink
-            to="/mywords"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaBookReader /> Từ của tôi
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/reading"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaEdit /> Luyện đọc
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/exam"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaClipboardList /> Thi thử
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/conversation"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaComments /> Hội thoại
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/japanese-name"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaClipboardList /> Tên tiếng Nhật
-          </NavLink>
-        </li>
-        <hr />
-        <li>
-          <NavLink
-            to="/introduce"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaInfoCircle /> Giới thiệu
-          </NavLink>
-        </li>
-        <li>
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => (isActive ? "active" : "")}
-          >
-            <FaCog /> Cài đặt
-          </NavLink>
-        </li>
-      </ul>
+      <nav className="sidebar-nav">
+        <ul className="menu">
+          <li>
+            <NavLink
+              to="/search"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaSearch />
+              </div>
+              <span>Tra cứu</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/translate"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaBook />
+              </div>
+              <span>Dịch</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/jlpt"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaClipboardList />
+              </div>
+              <span>JLPT</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/mywords"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaBookReader />
+              </div>
+              <span>Từ của tôi</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/reading"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaEdit />
+              </div>
+              <span>Luyện đọc</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/exam"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaClipboardList />
+              </div>
+              <span>Thi thử</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/conversation"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaComments />
+              </div>
+              <span>Hội thoại</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/japanese-name"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaUser />
+              </div>
+              <span>Tên tiếng Nhật</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/introduce"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaInfoCircle />
+              </div>
+              <span>Giới thiệu</span>
+            </NavLink>
+          </li>
+          <li>
+            <NavLink
+              to="/settings"
+              className={({ isActive }) =>
+                `menu-item ${isActive ? "active" : ""}`
+              }
+            >
+              <div className="icon-wrapper">
+                <FaCog />
+              </div>
+              <span>Cài đặt</span>
+            </NavLink>
+          </li>
+        </ul>
+      </nav>
     </div>
   );
 }
