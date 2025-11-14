@@ -6,8 +6,8 @@ from .flashcards import create_flashcard, add_to_flashcard, FlashcardDetail, lis
 from .auth import RegisterView, me
 from .kanji import kanji_detail
 from .jlpt import JLPTWordListView
-from .quiz import mcq_quiz
 from .translate import translate_text
+from .quiz import jlpt_quiz
 
 urlpatterns = [
     path("search/", SearchView.as_view()),
@@ -24,8 +24,6 @@ urlpatterns = [
     #translate API
     path("translate/", translate_text),
 
-
-    # ✅ Flashcards API
     path("flashcards/", list_flashcards, name="list-flashcards"),   # GET
     path("flashcards/create/", create_flashcard, name="create-flashcard"),  # POST
     path("flashcards/<int:flashcard_id>/add/", add_to_flashcard, name="add-to-flashcard"),  # POST
@@ -38,5 +36,5 @@ urlpatterns = [
 
     path("kanji/<str:char>/", kanji_detail),
     path("jlpt/<str:level>/words/", JLPTWordListView.as_view()),
-    path("quiz/mcq/", mcq_quiz),
+    path("quiz/jlpt/", jlpt_quiz),
 ]
