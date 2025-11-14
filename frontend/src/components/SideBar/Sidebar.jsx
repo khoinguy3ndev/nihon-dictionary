@@ -79,45 +79,6 @@ function Sidebar() {
           </li>
           <li>
             <NavLink
-              to="/reading"
-              className={({ isActive }) =>
-                `menu-item ${isActive ? "active" : ""}`
-              }
-            >
-              <div className="icon-wrapper">
-                <FaEdit />
-              </div>
-              <span>Luyện đọc</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/exam"
-              className={({ isActive }) =>
-                `menu-item ${isActive ? "active" : ""}`
-              }
-            >
-              <div className="icon-wrapper">
-                <FaClipboardList />
-              </div>
-              <span>Thi thử</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
-              to="/conversation"
-              className={({ isActive }) =>
-                `menu-item ${isActive ? "active" : ""}`
-              }
-            >
-              <div className="icon-wrapper">
-                <FaComments />
-              </div>
-              <span>Hội thoại</span>
-            </NavLink>
-          </li>
-          <li>
-            <NavLink
               to="/japanese-name"
               className={({ isActive }) =>
                 `menu-item ${isActive ? "active" : ""}`

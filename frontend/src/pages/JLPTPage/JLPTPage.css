@@ -1,20 +1,146 @@
+/* Layout tổng thể */
 .jlpt-page {
   display: flex;
   min-height: 100vh;
 }
 
+/* Sidebar */
 .jlpt-page .sidebar {
-  width: 220px;
+  flex-shrink: 0;
+  width: 260px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
 }
 
+/* Main content area */
 .jlpt-page .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header */
+.jlpt-page .main-content > header,
+.jlpt-page .main-content > .header {
+  background: #ffffff;
+  padding: 20px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  transition: box-shadow 0.3s ease;
+}
+
+.jlpt-page .main-content > header:hover,
+.jlpt-page .main-content > .header:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+/* Content area - KHÔNG padding, để JLPT component tự quản lý */
+.jlpt-page .content {
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
+/* JLPT component - Remove default padding/margin */
+.jlpt-page .content .jlpt-component {
+  padding: 0 !important;
+  margin: 0 !important;
+  min-height: auto !important;
+}
+
+/* Footer */
+.jlpt-page .main-content > footer,
+.jlpt-page .main-content > .footer {
+  background: #ffffff;
+  padding: 16px 32px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Custom scrollbar cho sidebar */
+.jlpt-page .sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.jlpt-page .sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.jlpt-page .sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.jlpt-page .sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .jlpt-page .sidebar {
+    width: 220px;
+  }
+
+  .jlpt-page .main-content > header,
+  .jlpt-page .main-content > .header,
+  .jlpt-page .main-content > footer,
+  .jlpt-page .main-content > .footer {
+    padding: 16px 24px;
+  }
+}
+
+@media (max-width: 992px) {
+  .jlpt-page {
+    flex-direction: column;
+  }
+
+  .jlpt-page .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .jlpt-page .main-content > header,
+  .jlpt-page .main-content > .header {
+    position: static;
+  }
+}
+
+@media (max-width: 768px) {
+  .jlpt-page .main-content > header,
+  .jlpt-page .main-content > .header,
+  .jlpt-page .main-content > footer,
+  .jlpt-page .main-content > .footer {
+    padding: 12px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Animation khi load trang */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .jlpt-page .content {
-  flex: 1;
-  padding: 20px;
-  background: #f0f2f5;
+  animation: fadeIn 0.4s ease-out;
 }

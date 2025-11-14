@@ -7,6 +7,7 @@ import TranslatePage from "./pages/TranslatePage/TranslatePage";
 import IntroducePage from "./pages/IntroducePage/Introducepage";
 import JLPTPage from "./pages/JLPTPage/JLPTPage";
 import FlashcardsPage from "./pages/FlashcardPage/FlashcardPage";
+import MyWords from "./pages/MyWords.page/MyWords";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/jlpt" element={<JLPTPage />} />
         <Route path="*" element={<HomePage />} />
         <Route path="/flashcards" element={<FlashcardsPage />} />
+        <Route path="/mywords" element={<MyWords />} />
       </Routes>
     </Router>
   );

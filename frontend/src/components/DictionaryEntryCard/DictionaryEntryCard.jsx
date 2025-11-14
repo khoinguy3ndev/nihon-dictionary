@@ -4,7 +4,7 @@ import "./DictionaryEntryCard.css";
 
 const API_BASE = import.meta?.env?.VITE_API_BASE || "http://127.0.0.1:8888";
 
-export default function DictionarySearchAll() {
+export default function DictionarySearchAll({ onSearchDone }) {
   const [q, setQ] = useState("");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -15,6 +15,7 @@ export default function DictionarySearchAll() {
   const [addingToFlashcard, setAddingToFlashcard] = useState(new Set());
   const [inFlashcards, setInFlashcards] = useState(new Set());
   const [defaultFlashcardId, setDefaultFlashcardId] = useState(null);
+  const [favorites, setFavorites] = useState(new Set());
 
   const fetchUrl = async (url, options = {}) => {
     setLoading(true);
@@ -39,6 +40,7 @@ export default function DictionarySearchAll() {
       setItems(results);
       setNextUrl(json?.next || null);
       setPrevUrl(json?.previous || null);
+      if (onSearchDone) onSearchDone(); // ⭐ báo cho History reload
 
       // Kiểm tra từ đã có trong flashcard
       if (results.length > 0) {
@@ -157,6 +159,36 @@ export default function DictionarySearchAll() {
         newSet.delete(entryId);
         return newSet;
       });
+    }
+  };
+  // toggle favorite
+  const toggleFavorite = async (entry) => {
+    try {
+      const token = localStorage.getItem("access");
+      const res = await fetch(`${API_BASE}/api/favorites/toggle/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ word_id: entry.id }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.detail || "Lỗi API");
+
+      setFavorites((prev) => {
+        const newSet = new Set(prev);
+        if (json.favorited) newSet.add(entry.id);
+        else newSet.delete(entry.id);
+        return newSet;
+      });
+
+      entry.is_favorited = json.favorited;
+      setItems((prev) => [...prev]); // force re-render
+    } catch (err) {
+      alert(`Lỗi toggle favorite: ${err.message}`);
     }
   };
 

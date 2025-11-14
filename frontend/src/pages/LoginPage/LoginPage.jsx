@@ -50,16 +50,21 @@ export default function LoginPage() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          username: emailOrUsername, // SimpleJWT mặc định field là 'username'
+          username: emailOrUsername,
           password,
         }),
       });
 
+      // log thêm
+      console.log("📌 tokenRes status:", tokenRes.status);
+
       const tokenJson = await tokenRes.json().catch(() => ({}));
+      console.log("📌 tokenJson:", tokenJson);
+
       if (!tokenRes.ok) {
         throw new Error(
           tokenJson?.detail ||
-            extractErr(tokenJson) ||
+            JSON.stringify(tokenJson) ||
             `${tokenRes.status} ${tokenRes.statusText}`
         );
       }
@@ -162,7 +167,7 @@ export default function LoginPage() {
             <label>
               <input type="checkbox" /> Nhớ tôi
             </label>
-            <Link to="/forgot-password">Quên mật khẩu?</Link>
+            <Link to="/login">Quên mật khẩu?</Link>
           </div>
 
           <button type="submit" disabled={loading}>

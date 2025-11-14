@@ -1,0 +1,403 @@
+/* Layout tổng thể */
+.mywords-page {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* Sidebar */
+.mywords-page .sidebar {
+  flex-shrink: 0;
+  width: 260px;
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+}
+
+/* Main content */
+.mywords-page .main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Header */
+.mywords-page .main-content > header,
+.mywords-page .main-content > .header {
+  background: #ffffff;
+  padding: 20px 32px;
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+/* Content */
+.mywords-page .content {
+  flex: 1;
+  padding: 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Container */
+.mywords-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header Section */
+.mywords-header {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.header-icon {
+  font-size: 64px;
+  margin-bottom: 16px;
+  display: inline-block;
+  animation: bounce 2s infinite;
+}
+
+.page-title {
+  font-size: 48px;
+  font-weight: bold;
+  color: white;
+  margin: 0 0 12px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.page-subtitle {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin: 0;
+}
+
+/* Loading State */
+.loading-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.spinner {
+  font-size: 64px;
+  display: inline-block;
+  animation: spin 2s linear infinite;
+  margin-bottom: 16px;
+}
+
+.loading-state p {
+  color: white;
+  font-size: 18px;
+  margin: 0;
+}
+
+/* Empty State */
+.empty-state {
+  text-align: center;
+  padding: 80px 20px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.empty-icon {
+  font-size: 80px;
+  margin-bottom: 20px;
+}
+
+.empty-state h2 {
+  font-size: 32px;
+  color: white;
+  margin: 0 0 12px;
+}
+
+.empty-state p {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  margin: 0;
+}
+
+/* Words Grid */
+.words-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Word Card */
+.word-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.word-card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.word-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* Word Header */
+.word-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #f3f4f6;
+}
+
+.word-main {
+  flex: 1;
+}
+
+.word-kanji {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1f2937;
+  margin: 0 0 8px;
+  line-height: 1.2;
+}
+
+.word-kana {
+  font-size: 18px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Favorite Button */
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 4px;
+  transition: all 0.3s ease;
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.favorite-btn.active {
+  filter: grayscale(0%);
+  opacity: 1;
+  animation: pulse 2s infinite;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2) rotate(15deg);
+}
+
+/* Word Meanings */
+.word-meanings {
+  margin-bottom: 16px;
+}
+
+.meaning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+.meaning-bullet {
+  color: #667eea;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.meaning-text {
+  color: #374151;
+  font-size: 15px;
+}
+
+/* Remove Button */
+.remove-btn {
+  width: 100%;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.remove-btn:hover {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  transform: scale(1.02);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+}
+
+.remove-btn span {
+  font-size: 16px;
+}
+
+/* Footer */
+.mywords-page .main-content > footer,
+.mywords-page .main-content > .footer {
+  background: #ffffff;
+  padding: 16px 32px;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Scrollbar */
+.mywords-page .sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mywords-page .sidebar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.mywords-page .sidebar::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 10px;
+}
+
+.mywords-page .sidebar::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Animations */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .mywords-page .sidebar {
+    width: 220px;
+  }
+
+  .words-grid {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+}
+
+@media (max-width: 992px) {
+  .mywords-page {
+    flex-direction: column;
+  }
+
+  .mywords-page .sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+  }
+
+  .mywords-page .content {
+    padding: 24px 16px;
+  }
+
+  .words-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 36px;
+  }
+
+  .header-icon {
+    font-size: 48px;
+  }
+
+  .word-card {
+    padding: 20px;
+  }
+
+  .word-kanji {
+    font-size: 28px;
+  }
+
+  .mywords-page .main-content > header,
+  .mywords-page .main-content > .header,
+  .mywords-page .main-content > footer,
+  .mywords-page .main-content > .footer {
+    padding: 12px 16px;
+  }
+}
