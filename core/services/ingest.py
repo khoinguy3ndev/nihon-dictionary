@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from django.db import transaction
+from django.db import transaction, IntegrityError
 from django.db.models import QuerySet
 
 from .jisho import jisho_search
@@ -9,22 +9,21 @@ from core.models import Word, WordMeaning, ExampleSentence
 
 
 def _gather_pos(senses: list[dict]) -> str:
-    """
-    Gom tất cả parts_of_speech từ các sense, bỏ trùng nhưng giữ thứ tự.
-    """
+    """Gom tất cả parts_of_speech từ các sense, bỏ trùng nhưng giữ thứ tự."""
     pos: list[str] = []
     for s in senses or []:
         pos.extend(s.get("parts_of_speech", []))
-    # dedupe nhưng giữ thứ tự xuất hiện
     return ", ".join(dict.fromkeys(pos))
 
 
-def _get_or_create_word(kanji: str | None,
-                        kana: str | None,
-                        parts: str,
-                        jlpt_level: str | None) -> Word:
+def _get_or_create_word(
+    kanji: str | None,
+    kana: str | None,
+    parts: str,
+    jlpt_level: str | None,
+) -> Word:
     """
-    Lấy bản ghi Word đầu tiên theo (kanji, kana); nếu chưa có thì tạo mới.
+    Lấy Word đầu tiên theo (kanji, kana); nếu chưa có thì tạo mới.
     Tránh MultipleObjectsReturned nếu lỡ có trùng trong DB.
     """
     w = (
@@ -33,14 +32,13 @@ def _get_or_create_word(kanji: str | None,
         .first()
     )
     if w is None:
-        w = Word.objects.create(
+        return Word.objects.create(
             kanji=kanji,
             kana=kana,
             parts_of_speech=parts or "",
             jlpt_level=jlpt_level,
             is_cached=True,
         )
-        return w
 
     # Cập nhật nhẹ nếu trước đó trống
     changed = False
@@ -61,14 +59,16 @@ def _get_or_create_word(kanji: str | None,
 def _upsert_meanings(word: Word, senses: list[dict]) -> list[WordMeaning]:
     """
     Tạo các WordMeaning nếu chưa tồn tại (so khớp theo 'meaning' text).
-    Trả về danh sách meanings của từ để dùng cho bước bơm ví dụ.
     """
     created_or_existing: list[WordMeaning] = []
     for s in senses or []:
         meaning_text = "; ".join(s.get("english_definitions", []))
         if not meaning_text:
             continue
-        wm, _ = WordMeaning.objects.get_or_create(word=word, meaning=meaning_text)
+        wm, _ = WordMeaning.objects.get_or_create(
+            word=word,
+            meaning=meaning_text,
+        )
         created_or_existing.append(wm)
     return created_or_existing
 
@@ -76,12 +76,14 @@ def _upsert_meanings(word: Word, senses: list[dict]) -> list[WordMeaning]:
 def _fill_examples_for_word(word: Word, per_meaning: int = 2) -> None:
     """
     Với mỗi meaning của 'word', nếu còn thiếu ví dụ thì nạp tối đa 'per_meaning' câu
-    từ Tatoeba và lưu vào bảng ExampleSentence (tránh trùng).
+    từ Tatoeba và lưu vào ExampleSentence (tránh trùng theo meaning+source+source_id).
     """
-    meanings: QuerySet[WordMeaning] = WordMeaning.objects.filter(word=word).order_by("id")
-    meanings = meanings.prefetch_related("examples")
+    meanings: QuerySet[WordMeaning] = (
+        WordMeaning.objects.filter(word=word)
+        .order_by("id")
+        .prefetch_related("examples")
+    )
 
-    # Tổng số câu còn thiếu
     need_total = 0
     need_per_meaning: list[tuple[WordMeaning, int]] = []
     for m in meanings:
@@ -98,24 +100,34 @@ def _fill_examples_for_word(word: Word, per_meaning: int = 2) -> None:
         return
 
     try:
-        # lấy dư một chút để phòng trùng lặp
         pool = search_examples(key, limit=need_total * 2)
     except Exception:
         pool = []
 
-    # Phân phối đều từ pool vào từng meaning còn thiếu
     for m, lacking in need_per_meaning:
         while lacking > 0 and pool:
             ex = pool.pop(0)
-            ExampleSentence.objects.get_or_create(
-                meaning=m,
-                jp=ex["jp"],
-                en=ex.get("en"),
-                defaults={
-                    "source": "tatoeba",
-                    "source_id": str(ex.get("id") or ""),
-                },
-            )
+
+            # Nếu Tatoeba không trả id thì bỏ qua để tránh source_id rỗng bị trùng
+            src_id = ex.get("id")
+            if not src_id:
+                continue
+
+            try:
+                # 🔥 Dùng cặp meaning+source+source_id làm key, khớp với UniqueConstraint
+                ExampleSentence.objects.get_or_create(
+                    meaning=m,
+                    source="tatoeba",
+                    source_id=str(src_id),
+                    defaults={
+                        "jp": ex.get("jp", ""),
+                        "en": ex.get("en"),
+                    },
+                )
+            except IntegrityError:
+                # Nếu vẫn lỡ trùng thì bỏ qua, không cho 500 nữa
+                pass
+
             lacking -= 1
 
 
@@ -127,6 +139,7 @@ def upsert_from_jisho(keyword: str) -> list[Word]:
     payload = jisho_search(keyword)
     words: list[Word] = []
 
+    # Tạo/cập nhật word + meanings trong 1 transaction
     with transaction.atomic():
         for item in payload.get("data", []):
             japanese = (item.get("japanese") or [{}])[0]
@@ -136,7 +149,7 @@ def upsert_from_jisho(keyword: str) -> list[Word]:
             kana = japanese.get("reading")
             parts = _gather_pos(senses)
 
-            # jlpt: mảng như ["jlpt-n5", ...] -> lấy 'N5'
+            # jlpt: ["jlpt-n5", ...] -> "N5"
             jlpt_level = None
             for tag in item.get("jlpt", []) or []:
                 if tag.startswith("jlpt-"):
@@ -147,7 +160,7 @@ def upsert_from_jisho(keyword: str) -> list[Word]:
             _upsert_meanings(w, senses)
             words.append(w)
 
-    # Sau khi meanings đã chắc chắn tồn tại, bơm ví dụ cho mỗi word
+    # Bơm ví dụ Tatoeba (không đặt trong transaction để đỡ khóa DB lâu)
     for w in words:
         _fill_examples_for_word(w, per_meaning=2)
 
