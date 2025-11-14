@@ -6,19 +6,28 @@ from django.db.models import Q, Prefetch
 from core.models import Word, WordMeaning
 from core.serializers.word import WordSerializer
 from core.services.ingest import upsert_from_jisho
+from core.services.history import save_search_history
 
 
+# ---------------------------------------------------------
+#  SEARCH
+# ---------------------------------------------------------
 class SearchView(generics.ListAPIView):
-    """Tìm kiếm từ vựng theo kanji hoặc kana"""
+    """
+    Tìm kiếm từ vựng theo Kanji hoặc Kana.
+    Nếu user đăng nhập -> lưu lịch sử tìm kiếm vào SearchHistory.
+    """
     serializer_class = WordSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        q = (self.request.query_params.get("q") or "").strip()
+        request = self.request
+        q = (request.query_params.get("q") or "").strip()
+
         if not q:
             return Word.objects.none()
 
-        # load meanings + examples để tránh N+1
+        # Tránh N+1 queries: load meanings + examples
         base = Word.objects.all().prefetch_related(
             Prefetch(
                 "meanings",
@@ -26,27 +35,39 @@ class SearchView(generics.ListAPIView):
             )
         )
 
-        # kiểm tra trong DB trước
+        # 1) Tìm trong DB trước
         qs = base.filter(Q(kanji__icontains=q) | Q(kana__icontains=q))
+
         if qs.exists():
+            # ✔ LƯU LỊCH SỬ (nếu người dùng đăng nhập)
+            save_search_history(request.user, list(qs))
             return qs
 
-        # nếu chưa có -> gọi Jisho API rồi upsert
+        # 2) Không có trong DB -> gọi Jisho API để lấy & lưu
         words = upsert_from_jisho(q)
-        return base.filter(id__in=[w.id for w in words])
+        result = base.filter(id__in=[w.id for w in words])
+
+        # ✔ LƯU LỊCH SỬ
+        save_search_history(request.user, list(result))
+        return result
 
     def get_serializer_context(self):
-        """Truyền request xuống serializer để kiểm tra is_favorited"""
+        """
+        Truyền request xuống serializer để xử lý is_favorited.
+        """
         context = super().get_serializer_context()
         context["request"] = self.request
         return context
 
 
+# ---------------------------------------------------------
+#  AUTOCOMPLETE
+# ---------------------------------------------------------
 @api_view(["GET"])
 @permission_classes([permissions.AllowAny])
 def autocomplete(request):
     """API gợi ý từ (autocomplete)"""
-    q = request.query_params.get("q", "")
+    q = request.query_params.get("q", "").strip()
     if not q:
         return Response([])
 
@@ -57,31 +78,45 @@ def autocomplete(request):
     return Response(list(qs))
 
 
+# ---------------------------------------------------------
+#  REVERSE LOOKUP (Tra nghĩa tiếng Việt -> tiếng Nhật)
+# ---------------------------------------------------------
 class ReverseLookupView(generics.ListAPIView):
-    """Tra ngược nghĩa tiếng Việt sang tiếng Nhật"""
+    """
+    Tra ngược nghĩa tiếng Việt sang tiếng Nhật.
+    Nếu user đăng nhập -> lưu lịch sử tìm kiếm.
+    """
     serializer_class = WordSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        q = (self.request.query_params.get("q") or "").strip()
+        request = self.request
+        q = (request.query_params.get("q") or "").strip()
         if not q:
             return Word.objects.none()
 
-        # tìm trong DB trước
+        # 1) Tìm trong DB trước
         ids = (
             Word.objects.filter(meanings__meaning__icontains=q)
             .values_list("id", flat=True)
             .distinct()
         )
-        if ids:
-            return Word.objects.filter(id__in=ids)
 
-        # nếu chưa có -> gọi Jisho API rồi upsert
+        if ids:
+            qs = Word.objects.filter(id__in=ids)
+            # ✔ LƯU LỊCH SỬ
+            save_search_history(request.user, list(qs))
+            return qs
+
+        # 2) Không có -> gọi Jisho API
         words = upsert_from_jisho(q)
-        return Word.objects.filter(id__in=[w.id for w in words])
+        result = Word.objects.filter(id__in=[w.id for w in words])
+
+        # ✔ LƯU LỊCH SỬ
+        save_search_history(request.user, list(result))
+        return result
 
     def get_serializer_context(self):
-        """Truyền request xuống serializer để kiểm tra is_favorited"""
         context = super().get_serializer_context()
         context["request"] = self.request
         return context

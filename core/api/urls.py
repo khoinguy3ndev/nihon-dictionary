@@ -1,24 +1,29 @@
 from django.urls import path
 from .search import SearchView, autocomplete, ReverseLookupView
-from .history import push_history, history
+from .history import get_search_history
 from .favorites import toggle_favorite, FavoritesView, is_favorited
 from .flashcards import create_flashcard, add_to_flashcard, FlashcardDetail, list_flashcards , is_in_flashcard
 from .auth import RegisterView, me
 from .kanji import kanji_detail
 from .jlpt import JLPTWordListView
 from .quiz import mcq_quiz
+from .translate import translate_text
 
 urlpatterns = [
     path("search/", SearchView.as_view()),
     path("autocomplete/", autocomplete),
     path("reverse/", ReverseLookupView.as_view()),
 
-    path("history/push/", push_history),
-    path("history/", history),
+    # path("history/push/", push_history),
+    path("history/", get_search_history),
 
     path("favorites/toggle/", toggle_favorite), 
     path("favorites/", FavoritesView.as_view()), 
     path("favorites/<int:word_id>/is_favorited/", is_favorited), 
+
+    #translate API
+    path("translate/", translate_text),
+
 
     # ✅ Flashcards API
     path("flashcards/", list_flashcards, name="list-flashcards"),   # GET
