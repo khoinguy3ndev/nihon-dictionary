@@ -16,6 +16,7 @@ export default function DictionarySearchAll({ onSearchDone }) {
   const [inFlashcards, setInFlashcards] = useState(new Set());
   const [defaultFlashcardId, setDefaultFlashcardId] = useState(null);
   const [favorites, setFavorites] = useState(new Set());
+  const isLoggedIn = Boolean(localStorage.getItem("access"));
 
   const fetchUrl = async (url, options = {}) => {
     setLoading(true);
@@ -45,6 +46,13 @@ export default function DictionarySearchAll({ onSearchDone }) {
       // Kiểm tra từ đã có trong flashcard
       if (results.length > 0) {
         const token = localStorage.getItem("access");
+
+        // Không đăng nhập → không check flashcard
+        if (!token) {
+          setInFlashcards(new Set());
+          return;
+        }
+
         const flashcardId = await ensureFlashcard();
         const inFlashSet = new Set();
 
@@ -52,13 +60,14 @@ export default function DictionarySearchAll({ onSearchDone }) {
           results.map(async (entry) => {
             const resCheck = await fetch(
               `${API_BASE}/api/flashcards/${flashcardId}/is_in/?word_id=${entry.id}`,
-              { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+              { headers: { Authorization: `Bearer ${token}` } }
             );
             if (!resCheck.ok) return;
             const jsonCheck = await resCheck.json().catch(() => null);
             if (jsonCheck?.in_flashcard) inFlashSet.add(entry.id);
           })
         );
+
         setInFlashcards(inFlashSet);
       }
     } catch (e) {
@@ -242,41 +251,45 @@ export default function DictionarySearchAll({ onSearchDone }) {
                 </div>
               </div>
 
-              <button
-                className={`addToFlashcardBtn ${
-                  isAdding || isInFlashcard ? "addToFlashcardBtnSuccess" : ""
-                }`}
-                onClick={() => addToFlashcard(entry)}
-                disabled={isAdding || isInFlashcard}
-              >
-                {isAdding ? (
-                  <>
-                    <span style={{ fontSize: 16 }}>⏳</span>
-                    <span>Đang thêm...</span>
-                  </>
-                ) : isInFlashcard ? (
-                  <>
-                    <span style={{ fontSize: 16 }}>✓</span>
-                    <span>Đã có</span>
-                  </>
-                ) : (
-                  <>
-                    <span style={{ fontSize: 18, fontWeight: 700 }}>+</span>
-                    <span>Flashcard</span>
-                  </>
-                )}
-              </button>
+              {isLoggedIn && (
+                <button
+                  className={`addToFlashcardBtn ${
+                    isAdding || isInFlashcard ? "addToFlashcardBtnSuccess" : ""
+                  }`}
+                  onClick={() => addToFlashcard(entry)}
+                  disabled={isAdding || isInFlashcard}
+                >
+                  {isAdding ? (
+                    <>
+                      <span style={{ fontSize: 16 }}>⏳</span>
+                      <span>Đang thêm...</span>
+                    </>
+                  ) : isInFlashcard ? (
+                    <>
+                      <span style={{ fontSize: 16 }}>✓</span>
+                      <span>Đã có</span>
+                    </>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: 18, fontWeight: 700 }}>+</span>
+                      <span>Flashcard</span>
+                    </>
+                  )}
+                </button>
+              )}
 
-              <button
-                className="favBtn"
-                style={{
-                  color: isFav ? "#dc2626" : "#64748b",
-                  borderColor: isFav ? "#dc2626" : "#e2e8f0",
-                }}
-                onClick={() => toggleFavorite(entry)}
-              >
-                {isFav ? "❤️ Đã thích" : "🤍 Yêu thích"}
-              </button>
+              {isLoggedIn && (
+                <button
+                  className="favBtn"
+                  style={{
+                    color: isFav ? "#dc2626" : "#64748b",
+                    borderColor: isFav ? "#dc2626" : "#e2e8f0",
+                  }}
+                  onClick={() => toggleFavorite(entry)}
+                >
+                  {isFav ? "❤️ Đã thích" : "🤍 Yêu thích"}
+                </button>
+              )}
             </header>
 
             <section>

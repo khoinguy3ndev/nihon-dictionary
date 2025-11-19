@@ -8,6 +8,7 @@ import IntroducePage from "./pages/IntroducePage/Introducepage";
 import JLPTPage from "./pages/JLPTPage/JLPTPage";
 import FlashcardsPage from "./pages/FlashcardPage/FlashcardPage";
 import MyWords from "./pages/MyWords.page/MyWords";
+import QuizPage from "./pages/QuizPage/QuizPage";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
         <Route path="*" element={<HomePage />} />
         <Route path="/flashcards" element={<FlashcardsPage />} />
         <Route path="/mywords" element={<MyWords />} />
+        <Route path="/quiz" element={<QuizPage />} />
       </Routes>
     </Router>
   );
