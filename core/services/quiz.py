@@ -4,7 +4,7 @@ import time
 import random
 import google.generativeai as genai
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyBUBHSuNO8j1lqrXoqJcEgGj2Qfa3_kZq8")
 
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
