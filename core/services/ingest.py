@@ -158,7 +158,7 @@ def upsert_from_jisho(keyword: str) -> list[Word]:
             _upsert_meanings(w, senses)
             words.append(w)
 
-    # Sau khi meanings đã chắc chắn tồn tại, bơm ví dụ cho mỗi word
+    # Sau khi meanings đã chắc chắn tồn tại, bơm ví dụ cho mỗi word da da da
     for w in words:
         _fill_examples_for_word(w, per_meaning=2)
 
