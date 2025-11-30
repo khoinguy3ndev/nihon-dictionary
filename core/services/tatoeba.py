@@ -1,4 +1,8 @@
 import requests
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 BASE = "https://tatoeba.org/en/api_v0/search"
 
@@ -69,6 +73,7 @@ def search_examples(query: str, limit: int = 3) -> list[dict]:
     """
     Trả list [{'id':..., 'jp':..., 'en':...}] cho từ/kanji 'query'.
     """
+    start = time.perf_counter()
     params = {
         "from": "jpn", "to": "eng", "query": query,
         "orphans": "no", "unapproved": "no",
@@ -78,6 +83,8 @@ def search_examples(query: str, limit: int = 3) -> list[dict]:
     r = requests.get(BASE, params=params, timeout=10)
     r.raise_for_status()
     data = r.json()
+    elapsed = (time.perf_counter() - start) * 1000
+    logger.info(f"[TIMING] tatoeba_search('{query}'): {elapsed:.2f}ms")
 
     out = []
     for item in data.get("results", []):

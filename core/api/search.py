@@ -1,3 +1,6 @@
+import time
+import logging
+
 from rest_framework import generics, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -7,6 +10,8 @@ from core.models import Word, WordMeaning
 from core.serializers.word import WordSerializer
 from core.services.ingest import upsert_from_jisho
 from core.services.history import save_search_history
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------
@@ -21,6 +26,7 @@ class SearchView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
+        total_start = time.perf_counter()
         request = self.request
         q = (request.query_params.get("q") or "").strip()
 
@@ -28,27 +34,43 @@ class SearchView(generics.ListAPIView):
             return Word.objects.none()
 
         # Tránh N+1 queries: load meanings + examples
+        t0 = time.perf_counter()
         base = Word.objects.all().prefetch_related(
             Prefetch(
                 "meanings",
                 queryset=WordMeaning.objects.all().prefetch_related("examples")
             )
         )
+        logger.info(f"[TIMING] SearchView - build base queryset: {(time.perf_counter() - t0) * 1000:.2f}ms")
 
         # 1) Tìm trong DB trước
+        t1 = time.perf_counter()
         qs = base.filter(Q(kanji__icontains=q) | Q(kana__icontains=q))
+        exists = qs.exists()
+        logger.info(f"[TIMING] SearchView - DB filter + exists check: {(time.perf_counter() - t1) * 1000:.2f}ms, found={exists}")
 
-        if qs.exists():
+        if exists:
             # ✔ LƯU LỊCH SỬ (nếu người dùng đăng nhập)
+            t2 = time.perf_counter()
             save_search_history(request.user, list(qs))
+            logger.info(f"[TIMING] SearchView - save_search_history: {(time.perf_counter() - t2) * 1000:.2f}ms")
+            logger.info(f"[TIMING] SearchView TOTAL (cache hit): {(time.perf_counter() - total_start) * 1000:.2f}ms")
             return qs
 
         # 2) Không có trong DB -> gọi Jisho API để lấy & lưu
+        t3 = time.perf_counter()
         words = upsert_from_jisho(q)
+        logger.info(f"[TIMING] SearchView - upsert_from_jisho: {(time.perf_counter() - t3) * 1000:.2f}ms")
+
+        t4 = time.perf_counter()
         result = base.filter(id__in=[w.id for w in words])
+        logger.info(f"[TIMING] SearchView - filter result: {(time.perf_counter() - t4) * 1000:.2f}ms")
 
         # ✔ LƯU LỊCH SỬ
+        t5 = time.perf_counter()
         save_search_history(request.user, list(result))
+        logger.info(f"[TIMING] SearchView - save_search_history: {(time.perf_counter() - t5) * 1000:.2f}ms")
+        logger.info(f"[TIMING] SearchView TOTAL (cache miss): {(time.perf_counter() - total_start) * 1000:.2f}ms")
         return result
 
     def get_serializer_context(self):

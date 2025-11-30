@@ -9,7 +9,7 @@ class User(AbstractUser):
 class Word(models.Model):
     kanji = models.CharField(max_length=255, null=True, blank=True)
     kana = models.CharField(max_length=255, null=True, blank=True)
-    parts_of_speech = models.CharField(max_length=100)
+    parts_of_speech = models.CharField(max_length=255)
     jlpt_level = models.CharField(max_length=10, null=True, blank=True)
     is_cached = models.BooleanField(default=False)
 

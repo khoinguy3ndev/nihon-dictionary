@@ -11,7 +11,7 @@ def translate_text(request):
         return Response({"error": "Empty text"}, status=400)
 
     try:
-        translated = GoogleTranslator(source="ja", target="vi").translate(text)
+        translated = GoogleTranslator(source="ja", target="en").translate(text)
         return Response({"translated": translated})
     except Exception as e:
         return Response({"error": str(e)}, status=500)

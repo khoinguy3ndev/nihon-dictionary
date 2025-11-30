@@ -1,4 +1,6 @@
 from django.urls import path
+
+from core.api.word_detail import WordDetailView
 from .search import SearchView, autocomplete, ReverseLookupView
 from .history import get_search_history
 from .favorites import toggle_favorite, FavoritesView, is_favorited
@@ -13,6 +15,7 @@ urlpatterns = [
     path("search/", SearchView.as_view()),
     path("autocomplete/", autocomplete),
     path("reverse/", ReverseLookupView.as_view()),
+    path("word/<int:pk>/", WordDetailView.as_view()),
 
     # path("history/push/", push_history),
     path("history/", get_search_history),
