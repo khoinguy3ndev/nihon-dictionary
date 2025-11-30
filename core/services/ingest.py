@@ -76,12 +76,12 @@ def _upsert_meanings(word: Word, senses: list[dict]) -> list[WordMeaning]:
 def _fill_examples_for_word(word: Word, per_meaning: int = 2) -> None:
     """
     Với mỗi meaning của 'word', nếu còn thiếu ví dụ thì nạp tối đa 'per_meaning' câu
-    từ Tatoeba và lưu vào bảng ExampleSentence (tránh trùng).
+    từ Tatoeba và lưu vào ExampleSentence (tránh trùng).
     """
     meanings: QuerySet[WordMeaning] = WordMeaning.objects.filter(word=word).order_by("id")
     meanings = meanings.prefetch_related("examples")
 
-    # Tổng số câu còn thiếu
+    # Danh sách meaning còn thiếu ví dụ
     need_total = 0
     need_per_meaning: list[tuple[WordMeaning, int]] = []
     for m in meanings:
@@ -98,25 +98,36 @@ def _fill_examples_for_word(word: Word, per_meaning: int = 2) -> None:
         return
 
     try:
-        # lấy dư một chút để phòng trùng lặp
+        # lấy dư để tránh bị trùng
         pool = search_examples(key, limit=need_total * 2)
     except Exception:
         pool = []
 
-    # Phân phối đều từ pool vào từng meaning còn thiếu
+    # Phân phối ví dụ từ pool
     for m, lacking in need_per_meaning:
         while lacking > 0 and pool:
             ex = pool.pop(0)
+
+            example_id = ex.get("id")
+            japanese = ex.get("japanese")
+            english = ex.get("english")
+
+            if not japanese:
+                continue
+
             ExampleSentence.objects.get_or_create(
+                source="tatoeba",
+                source_id=example_id,
+                word=word,
                 meaning=m,
-                jp=ex["jp"],
-                en=ex.get("en"),
                 defaults={
-                    "source": "tatoeba",
-                    "source_id": str(ex.get("id") or ""),
-                },
+                    "japanese": japanese,
+                    "english": english or ""
+                }
             )
+
             lacking -= 1
+
 
 
 def upsert_from_jisho(keyword: str) -> list[Word]:
