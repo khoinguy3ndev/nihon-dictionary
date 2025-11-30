@@ -6,25 +6,27 @@ logger = logging.getLogger(__name__)
 
 BASE = "https://tatoeba.org/en/api_v0/search"
 
+
+# ---------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------
+
 def _get_text(obj):
     if not isinstance(obj, dict):
         return None
     return obj.get("text") or (obj.get("sentence") or {}).get("text")
+
 
 def _get_id(obj):
     if not isinstance(obj, dict):
         return None
     return obj.get("id") or (obj.get("sentence") or {}).get("id")
 
+
 def _iter_english_translations(translations):
-    """
-    Yield (id, text) cho mọi câu dịch tiếng Anh, chịu được nhiều cấu trúc:
-    - list of dicts: [{'lang':'eng','text':...}, ...]
-    - list of groups: [{'lang':'eng','sentences':[{'text':...}, ...]}, ...]
-    - dict keyed theo ngôn ngữ: {'eng': [ {...}, ... ], ...}
-    - list of lists: [[{...}, ...], [...]]
-    """
-    # dict keyed theo lang
+    """Yield (id, text) của mọi câu dịch tiếng Anh từ nhiều format khác nhau."""
+
+    # dict keyed by lang
     if isinstance(translations, dict):
         for key, arr in translations.items():
             if str(key).startswith("en"):
@@ -42,7 +44,7 @@ def _iter_english_translations(translations):
     # list
     if isinstance(translations, list):
         for t in translations:
-            # group có 'lang' + 'sentences'
+            # group dạng { lang, sentences: [...] }
             if isinstance(t, dict) and ("sentences" in t):
                 lang = t.get("lang") or t.get("language")
                 if lang and str(lang).startswith("en"):
@@ -51,6 +53,7 @@ def _iter_english_translations(translations):
                         if txt:
                             yield (_get_id(s), txt)
                 continue
+
             # phần tử dict đơn
             if isinstance(t, dict):
                 lang = t.get("lang") or t.get("language")
@@ -59,7 +62,8 @@ def _iter_english_translations(translations):
                     if txt:
                         yield (_get_id(t), txt)
                 continue
-            # phần tử là list lồng
+
+            # phần tử list lồng
             if isinstance(t, list):
                 for u in t:
                     if isinstance(u, dict):
@@ -69,39 +73,92 @@ def _iter_english_translations(translations):
                             if txt:
                                 yield (_get_id(u), txt)
 
+
+# ---------------------------------------------------------
+# Main search function (strict → fallback)
+# ---------------------------------------------------------
+
 def search_examples(query: str, limit: int = 3) -> list[dict]:
     """
-    Trả list [{'id':..., 'jp':..., 'en':...}] cho từ/kanji 'query'.
+    1) Strict mode: query JP→EN (ưu tiên câu có dịch tiếng Anh)
+    2) Nếu strict = 0 → fallback mode: JP-only search
     """
-    start = time.perf_counter()
-    params = {
-        "from": "jpn", "to": "eng", "query": query,
-        "orphans": "no", "unapproved": "no",
-        "trans_filter": "limit", "trans_to": "eng",
-        "sort": "relevance", "page": 1, "limit": limit * 3  # lấy dư để lọc
-    }
-    r = requests.get(BASE, params=params, timeout=10)
-    r.raise_for_status()
-    data = r.json()
-    elapsed = (time.perf_counter() - start) * 1000
-    logger.info(f"[TIMING] tatoeba_search('{query}'): {elapsed:.2f}ms")
 
+    def fetch(params):
+        try:
+            r = requests.get(BASE, params=params, timeout=10)
+            r.raise_for_status()
+            return r.json().get("results", [])
+        except Exception:
+            return []
+
+    # -----------------------------------------------------
+    # STEP 1 — STRICT MODE (JP→ENG)
+    # -----------------------------------------------------
+    strict_params = {
+        "query": query,
+        "from": "jpn",
+        "to": "eng",
+        "orphans": "no",
+        "unapproved": "no",
+        "trans_filter": "limit",
+        "trans_to": "eng",
+        "sort": "relevance",
+        "page": 1,
+        "limit": limit * 3,
+    }
+
+    strict_results = fetch(strict_params)
+
+    if strict_results:
+        logger.info(f"[TATOEBA] STRICT mode used for '{query}'")
+        parsed = _parse_results(strict_results, limit)
+        if parsed:
+            return parsed
+
+    # -----------------------------------------------------
+    # STEP 2 — FALLBACK MODE (JP-ONLY)
+    # -----------------------------------------------------
+    fallback_params = {
+        "query": query,
+        "sort": "relevance",
+        "page": 1,
+        "limit": limit * 3,
+    }
+
+    fallback_results = fetch(fallback_params)
+
+    logger.info(f"[TATOEBA] FALLBACK mode used for '{query}'")
+
+    return _parse_results(fallback_results, limit)
+
+
+# ---------------------------------------------------------
+# Parsing helper
+# ---------------------------------------------------------
+
+def _parse_results(results, limit):
     out = []
-    for item in data.get("results", []):
+
+    for item in results:
         jp = _get_text(item)
         if not jp:
             continue
 
+        # tìm EN nếu có
         en = None
-        en_id = None
         translations = item.get("translations") or {}
         for tid, en_txt in _iter_english_translations(translations):
             en = en_txt
-            en_id = tid
-            break  # lấy 1 câu EN đầu tiên là đủ
+            break
 
-        if jp and en:
-            out.append({"id": en_id, "jp": jp, "en": en})
-            if len(out) >= limit:
-                break
+        out.append({
+            "id": item.get("id"),
+            "jp": jp,
+            "en": en,
+        })
+
+        if len(out) >= limit:
+            break
+
     return out
