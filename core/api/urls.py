@@ -5,7 +5,7 @@ from .search import SearchView, autocomplete, ReverseLookupView
 from .history import get_search_history
 from .favorites import toggle_favorite, FavoritesView, is_favorited
 from .flashcards import create_flashcard, add_to_flashcard, FlashcardDetail, list_flashcards , is_in_flashcard
-from .auth import RegisterView, me, update_user, change_password
+from .auth import RegisterView, me, update_user, change_password, forgot_password, reset_password, verify_reset_token
 from .kanji import kanji_detail
 from .jlpt import JLPTWordListView
 from .translate import translate_text

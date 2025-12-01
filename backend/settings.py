@@ -175,3 +175,17 @@ LOGGING = {
         },
     },
 }
+
+# ======================================
+# Email Configuration (SMTP)
+# ======================================
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('SMTP_PORT', 587))
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.getenv('SMTP_USER', '')
+EMAIL_HOST_PASSWORD = os.getenv('SMTP_PASS', '')
+DEFAULT_FROM_EMAIL = os.getenv('SMTP_USER', 'noreply@nihon-dictionary.com')
+
+# Frontend URL for password reset link
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')

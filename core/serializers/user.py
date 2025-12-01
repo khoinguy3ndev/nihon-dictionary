@@ -23,6 +23,7 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length=8, 
         trim_whitespace=False
     )
+    email = serializers.EmailField(required=True)  # Email bắt buộc
 
     class Meta:
         model = User
@@ -30,7 +31,9 @@ class RegisterSerializer(serializers.ModelSerializer):
 
     # Kiểm tra email phải unique
     def validate_email(self, value):
-        if value and User.objects.filter(email=value).exists():
+        if not value:
+            raise serializers.ValidationError("Email là bắt buộc.")
+        if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("Email đã được sử dụng.")
         return value
 
@@ -89,3 +92,27 @@ class ChangePasswordSerializer(serializers.Serializer):
         user.set_password(self.validated_data["new_password"])
         user.save()
         return user
+
+
+# =======================================
+# 5) Password Reset Request
+# =======================================
+class PasswordResetRequestSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("Email không tồn tại trong hệ thống.")
+        return value
+
+
+# =======================================
+# 6) Password Reset Confirm
+# =======================================
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_new_password(self, value):
+        validate_password(value)
+        return value

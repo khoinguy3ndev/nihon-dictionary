@@ -40,9 +40,6 @@ class FlashcardWord(models.Model):
     flashcard = models.ForeignKey(Flashcard, on_delete=models.CASCADE, related_name='items')
     word = models.ForeignKey(Word, on_delete=models.CASCADE)
 
-# core/models.py
-from django.db import models
-
 class ExampleSentence(models.Model):
     meaning = models.ForeignKey(
         'core.WordMeaning', on_delete=models.CASCADE, related_name='examples'
@@ -61,3 +58,31 @@ class ExampleSentence(models.Model):
                 name='uq_example_by_sourceid'
             ),
         ]
+
+
+# ======================================
+# Password Reset Token
+# ======================================
+import uuid
+from django.utils import timezone
+from datetime import timedelta
+
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='password_reset_tokens')
+    token = models.CharField(max_length=64, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    def save(self, *args, **kwargs):
+        if not self.token:
+            self.token = uuid.uuid4().hex
+        if not self.expires_at:
+            self.expires_at = timezone.now() + timedelta(hours=1)  # Token hết hạn sau 1 giờ
+        super().save(*args, **kwargs)
+
+    def is_valid(self):
+        return not self.is_used and timezone.now() < self.expires_at
+
+    def __str__(self):
+        return f"Reset token for {self.user.email}"
