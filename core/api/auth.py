@@ -20,10 +20,10 @@ from core.models import PasswordResetToken
 User = get_user_model()
 
 
-# ======================================
-# 1) Đăng ký (Register)
-# POST /api/user/register/
-# ======================================
+ # ======================================
+ # 1) Register
+ # POST /api/user/register/
+ # ======================================
 class RegisterView(APIView):
     permission_classes = [permissions.AllowAny]
 
@@ -42,7 +42,7 @@ class RegisterView(APIView):
 
 
 # ======================================
-# 2) Lấy thông tin user đang đăng nhập
+# 2) Get current logged-in user info
 # GET /api/user/me/
 # ======================================
 @api_view(["GET"])
@@ -52,7 +52,7 @@ def me(request):
 
 
 # ======================================
-# 3) Update thông tin tài khoản
+# 3) Update user info
 # PUT /api/user/update/
 # ======================================
 @api_view(["PUT"])
@@ -66,11 +66,11 @@ def update_user(request):
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return Response({"detail": "Cập nhật thành công"})
+    return Response({"detail": "Update successful"})
 
 
 # ======================================
-# 4) Đổi mật khẩu
+# 4) Change password
 # PUT /api/user/change-password/
 # ======================================
 @api_view(["PUT"])
@@ -82,11 +82,11 @@ def change_password(request):
     )
     serializer.is_valid(raise_exception=True)
     serializer.save()
-    return Response({"detail": "Đổi mật khẩu thành công"})
+    return Response({"detail": "Password changed successfully"})
 
 
 # ======================================
-# 5) Yêu cầu reset mật khẩu (Forgot Password)
+# 5) Request password reset (Forgot Password)
 # POST /api/auth/forgot-password/
 # ======================================
 @api_view(["POST"])
@@ -98,32 +98,32 @@ def forgot_password(request):
     email = serializer.validated_data["email"]
     user = User.objects.get(email=email)
 
-    # Xóa các token cũ chưa dùng của user này
+    # Delete old unused tokens for this user
     PasswordResetToken.objects.filter(user=user, is_used=False).delete()
 
-    # Tạo token mới
+    # Create new token
     reset_token = PasswordResetToken.objects.create(user=user)
 
-    # Tạo link reset password
+    # Create reset password link
     reset_link = f"{settings.FRONTEND_URL}/reset-password?token={reset_token.token}"
 
-    # Gửi email
+    # Send email
     try:
         send_mail(
-            subject="[Nihon Dictionary] Đặt lại mật khẩu",
+            subject="[Nihon Dictionary] Password Reset",
             message=f"""
-Xin chào {user.username},
+Hello {user.username},
 
-Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản Nihon Dictionary.
+You have requested to reset your password for your Nihon Dictionary account.
 
-Vui lòng nhấp vào liên kết sau để đặt lại mật khẩu:
+Please click the following link to reset your password:
 {reset_link}
 
-Liên kết này sẽ hết hạn sau 1 giờ.
+This link will expire in 1 hour.
 
-Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.
+If you did not request a password reset, please ignore this email.
 
-Trân trọng,
+Best regards,
 Nihon Dictionary Team
 """,
             from_email=settings.DEFAULT_FROM_EMAIL,
@@ -132,15 +132,15 @@ Nihon Dictionary Team
         )
     except Exception as e:
         return Response(
-            {"detail": f"Không thể gửi email: {str(e)}"},
+            {"detail": f"Could not send email: {str(e)}"},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
-    return Response({"detail": "Email đặt lại mật khẩu đã được gửi."})
+    return Response({"detail": "Password reset email has been sent."})
 
 
 # ======================================
-# 6) Xác nhận reset mật khẩu
+# 6) Confirm password reset
 # POST /api/auth/reset-password/
 # ======================================
 @api_view(["POST"])
@@ -156,30 +156,30 @@ def reset_password(request):
         reset_token = PasswordResetToken.objects.get(token=token_str)
     except PasswordResetToken.DoesNotExist:
         return Response(
-            {"detail": "Token không hợp lệ."},
+            {"detail": "Invalid token."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     if not reset_token.is_valid():
         return Response(
-            {"detail": "Token đã hết hạn hoặc đã được sử dụng."},
+            {"detail": "Token has expired or has already been used."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
-    # Đặt mật khẩu mới
+    # Set new password
     user = reset_token.user
     user.set_password(new_password)
     user.save()
 
-    # Đánh dấu token đã sử dụng
+    # Mark token as used
     reset_token.is_used = True
     reset_token.save()
 
-    return Response({"detail": "Mật khẩu đã được đặt lại thành công."})
+    return Response({"detail": "Password has been reset successfully."})
 
 
 # ======================================
-# 7) Kiểm tra token có hợp lệ không
+# 7) Verify if reset token is valid
 # GET /api/auth/verify-reset-token/?token=xxx
 # ======================================
 @api_view(["GET"])
@@ -189,7 +189,7 @@ def verify_reset_token(request):
 
     if not token_str:
         return Response(
-            {"valid": False, "detail": "Token không được cung cấp."},
+            {"valid": False, "detail": "Token was not provided."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
@@ -197,13 +197,13 @@ def verify_reset_token(request):
         reset_token = PasswordResetToken.objects.get(token=token_str)
     except PasswordResetToken.DoesNotExist:
         return Response(
-            {"valid": False, "detail": "Token không hợp lệ."},
+            {"valid": False, "detail": "Invalid token."},
             status=status.HTTP_400_BAD_REQUEST
         )
 
     if not reset_token.is_valid():
         return Response(
-            {"valid": False, "detail": "Token đã hết hạn hoặc đã được sử dụng."},
+            {"valid": False, "detail": "Token has expired or has already been used."},
             status=status.HTTP_400_BAD_REQUEST
         )
 

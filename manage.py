@@ -3,6 +3,12 @@
 import os
 import sys
 
+# 🔥 Thêm dòng này để load .env
+from dotenv import load_dotenv
+
+# 🔥 Load file .env cùng cấp với manage.py
+load_dotenv()
+
 
 def main():
     """Run administrative tasks."""
