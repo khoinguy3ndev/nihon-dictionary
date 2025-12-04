@@ -23,18 +23,18 @@ class RegisterSerializer(serializers.ModelSerializer):
         min_length=8, 
         trim_whitespace=False
     )
-    email = serializers.EmailField(required=True)  # Email bắt buộc
+    email = serializers.EmailField(required=True)  # Email is required
 
     class Meta:
         model = User
         fields = ["id", "username", "email", "password"]
 
-    # Kiểm tra email phải unique
+    # Ensure email is unique
     def validate_email(self, value):
         if not value:
-            raise serializers.ValidationError("Email là bắt buộc.")
+            raise serializers.ValidationError("Email is required.")
         if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email đã được sử dụng.")
+            raise serializers.ValidationError("Email has already been used.")
         return value
 
     # Validate password theo Django Rule
@@ -66,7 +66,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
 
         user = self.context["request"].user
         if User.objects.exclude(id=user.id).filter(email=value).exists():
-            raise serializers.ValidationError("Email đã được sử dụng.")
+            raise serializers.ValidationError("Email has already been used.")
         return value
 
 
@@ -80,7 +80,7 @@ class ChangePasswordSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):
-            raise serializers.ValidationError("Mật khẩu cũ không đúng.")
+            raise serializers.ValidationError("Old password is incorrect.")
         return value
 
     def validate_new_password(self, value):
@@ -102,7 +102,7 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if not User.objects.filter(email=value).exists():
-            raise serializers.ValidationError("Email không tồn tại trong hệ thống.")
+            raise serializers.ValidationError("Email does not exist in the system.")
         return value
 
 
