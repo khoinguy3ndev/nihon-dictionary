@@ -608,9 +608,3 @@ python manage.py test core
 This project is created for educational and portfolio purposes.
 
 ---
-
-<div align="center">
-
-**Built with ❤️ for Japanese language learners**
-
-</div>
