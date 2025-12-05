@@ -607,16 +607,3 @@ python manage.py test core
 This project is created for educational and portfolio purposes.
 
 ---
-
-## 👤 Author
-
-**Khoi Nguyen**
-- GitHub: [@khoinguyen2010hihihi](https://github.com/khoinguyen2010hihihi)
-
----
-
-<div align="center">
-
-**Built with ❤️ for Japanese language learners**
-
-</div>
