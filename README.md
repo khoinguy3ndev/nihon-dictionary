@@ -5,8 +5,8 @@
 ![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![Django](https://img.shields.io/badge/Django-5.2-092E20?style=for-the-badge&logo=django&logoColor=white)
 ![DRF](https://img.shields.io/badge/Django_REST_Framework-3.14+-ff1709?style=for-the-badge&logo=django&logoColor=white)
-![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-Auth-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+
 
 **A comprehensive Japanese-English dictionary REST API with AI-powered features**
 
@@ -72,7 +72,7 @@ This project demonstrates proficiency in building scalable RESTful APIs, integra
 - **Simple JWT** - JSON Web Token authentication
 
 ### **Database**
-- **MySQL 8.0** - Primary database with UTF8MB4 charset for Japanese support
+- **PostgreSQL**
 
 ### **External APIs & Services**
 | Service | Purpose |
@@ -96,7 +96,7 @@ This project demonstrates proficiency in building scalable RESTful APIs, integra
 
 ### Prerequisites
 - Python 3.10 or higher
-- MySQL 8.0 or higher
+- PostgreSQL
 - pip (Python package manager)
 
 ### Step 1: Clone the Repository
@@ -119,7 +119,7 @@ source venv/bin/activate
 ### Step 3: Install Dependencies
 ```bash
 pip install django djangorestframework djangorestframework-simplejwt
-pip install mysqlclient python-dotenv django-cors-headers
+pip install psycopg2-binary python-dotenv django-cors-headers
 pip install requests deep-translator google-generativeai
 ```
 
@@ -147,17 +147,16 @@ FRONTEND_URL=http://localhost:3000
 ```
 
 ### Step 5: Configure Database
-Update `backend/settings.py` with your MySQL credentials:
+Update `backend/settings.py` with your PostgreSQL credentials:
 ```python
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.mysql",
-        "NAME": "nihon_dict",
-        "USER": "your_username",
-        "PASSWORD": "your_password",
-        "HOST": "127.0.0.1",
-        "PORT": "3306",
-        "OPTIONS": {"charset": "utf8mb4"}
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("DB_NAME"),
+        "USER": os.getenv("DB_USER", "postgres"),
+        "PASSWORD": os.getenv("DB_PASSWORD"),
+        "HOST": os.getenv("DB_HOST"),
+        "PORT": os.getenv("DB_PORT"),
     }
 }
 ```
@@ -546,7 +545,7 @@ backend/
 
 ```
 ┌──────────┐     ┌──────────────┐     ┌─────────────┐
-│  Client  │────▶│ Django REST  │────▶│   MySQL     │
+│  Client  │────▶│ Django REST  │────▶│   Postgre   │
 │ (React)  │◀────│  Framework   │◀────│  Database   │
 └──────────┘     └──────┬───────┘     └─────────────┘
                        │
@@ -564,7 +563,7 @@ backend/
 ## 🔧 Key Technical Highlights
 
 ### 1. **Smart Caching Strategy**
-- First searches local MySQL database
+- First searches local PostgreSQL database
 - Falls back to external APIs only if not found
 - Auto-caches new words for future requests
 - Reduces API calls and improves response time
